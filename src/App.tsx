@@ -1,8 +1,6 @@
 import React from "react";
-import "./App.css";
+import { TodoList } from "./TodoList";
 
-const App: React.FC = () => {
-  return <div>Hello</div>;
-};
-
-export default App;
+export default function App() {
+  return <TodoList />;
+}
