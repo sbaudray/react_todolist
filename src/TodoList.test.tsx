@@ -1,14 +1,15 @@
 import React from "react";
 import { TodoList } from "./TodoList";
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, fireEvent } from "@testing-library/react";
 
 afterEach(cleanup);
 
-const initialTodos = [
-  { id: "1", content: "foo" },
-  { id: "2", content: "bar" },
-  { id: "3", content: "baz" }
-];
+const labels = ["cook", "shopping", "sleep"];
+
+const initialTodos = labels.map((label, index) => ({
+  id: index.toString(),
+  content: label
+}));
 
 it("asks for todos when there are none", () => {
   const { getByText } = render(<TodoList />);
@@ -17,7 +18,34 @@ it("asks for todos when there are none", () => {
 
 it("displays initial todos", () => {
   const { getByText } = render(<TodoList initialTodos={initialTodos} />);
-  getByText(/foo/);
-  getByText(/bar/);
-  getByText(/baz/);
+
+  labels.forEach(label => expect(getByText(label)).toBeInTheDocument());
+});
+
+it("adds a todo in the list", () => {
+  const { getByLabelText, getByText } = render(
+    <TodoList initialTodos={initialTodos} />
+  );
+
+  const input = getByLabelText("Add todo");
+  const newTodo = "testing";
+
+  fireEvent.change(input, { target: { value: newTodo } });
+  fireEvent.keyDown(input, { key: "Enter", code: 13 });
+
+  expect(getByText(newTodo)).toBeInTheDocument();
+});
+
+it("removes a todo of the list", () => {
+  const { queryByText, getAllByRole } = render(
+    <TodoList initialTodos={initialTodos} />
+  );
+
+  const indexToRemove = 2;
+  const remover = getAllByRole("button")[indexToRemove];
+
+  fireEvent.click(remover);
+
+  expect(queryByText(labels[indexToRemove])).not.toBeInTheDocument();
+  expect(queryByText(labels[0])).toBeInTheDocument();
 });
