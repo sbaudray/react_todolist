@@ -1,24 +1,26 @@
 import React from "react";
 import uuid from "uuid/v4";
+import { TodoItem } from "./TodoItem";
 
-interface Todo {
-  id: string;
-  content: string;
-}
-
-interface TodoListProps {
+interface Props {
   initialTodos?: Todo[];
 }
 
-export function TodoList({ initialTodos = [] }: TodoListProps) {
-  const [newTodo, setNewTodo] = React.useState("");
+const makeTodo = (content: string) => ({ id: uuid(), content });
+
+export function TodoList({ initialTodos = [] }: Props) {
   const [todos, setTodos] = React.useState<Todo[]>(initialTodos);
+  const [writing, write] = React.useState("");
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Enter") {
-      setTodos(todos => [...todos, { id: uuid(), content: newTodo }]);
-      setNewTodo("");
+      addTodo(writing);
+      write("");
     }
+  }
+
+  function addTodo(content: string) {
+    setTodos(todos => todos.concat(makeTodo(content)));
   }
 
   function removeTodo(id: string) {
@@ -27,21 +29,18 @@ export function TodoList({ initialTodos = [] }: TodoListProps) {
 
   return (
     <div>
-      {todos.length
-        ? todos.map(item => (
-            <div key={item.id}>
-              {item.content}
-              <button onClick={() => removeTodo(item.id)}>remove item</button>
-            </div>
-          ))
-        : "Please give me something to show"}
-      <label htmlFor="todo">Add todo</label>
+      <label htmlFor="todo">Add something todo</label>
       <input
+        style={{ display: "block" }}
         id="todo"
-        value={newTodo}
-        onChange={e => setNewTodo(e.target.value)}
+        placeholder="What you gonna do?"
+        value={writing}
+        onChange={e => write(e.target.value)}
         onKeyDown={handleKeyDown}
       />
+      {todos.map(todo => (
+        <TodoItem key={todo.id} todo={todo} onRemove={removeTodo} />
+      ))}
     </div>
   );
 }

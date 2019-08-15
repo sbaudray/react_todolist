@@ -1,5 +1,5 @@
 import React from "react";
-import { TodoList } from "./TodoList";
+import { TodoList } from "../TodoList";
 import { render, cleanup, fireEvent } from "@testing-library/react";
 
 afterEach(cleanup);
@@ -11,11 +11,6 @@ const initialTodos = labels.map((label, index) => ({
   content: label
 }));
 
-it("asks for todos when there are none", () => {
-  const { getByText } = render(<TodoList />);
-  getByText("Please give me something to show");
-});
-
 it("displays initial todos", () => {
   const { getByText } = render(<TodoList initialTodos={initialTodos} />);
 
@@ -23,11 +18,11 @@ it("displays initial todos", () => {
 });
 
 it("adds a todo in the list", () => {
-  const { getByLabelText, getByText } = render(
+  const { getByRole, getByText } = render(
     <TodoList initialTodos={initialTodos} />
   );
 
-  const input = getByLabelText("Add todo");
+  const input = getByRole("textbox");
   const newTodo = "testing";
 
   fireEvent.change(input, { target: { value: newTodo } });
