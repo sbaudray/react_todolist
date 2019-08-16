@@ -1,5 +1,5 @@
 interface Todo {
   id: string;
-  content: string;
+  label: string;
 }
 

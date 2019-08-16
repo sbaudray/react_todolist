@@ -4,12 +4,14 @@ import { render, cleanup, fireEvent } from "@testing-library/react";
 
 afterEach(cleanup);
 
-const labels = ["cook", "shopping", "sleep"];
+const labels = ["cook", "shop", "sleep"];
 
 const initialTodos = labels.map((label, index) => ({
   id: index.toString(),
-  content: label
+  label
 }));
+
+const newTodo = "test";
 
 it("displays initial todos", () => {
   const { getByText } = render(<TodoList initialTodos={initialTodos} />);
@@ -23,7 +25,6 @@ it("adds a todo in the list", () => {
   );
 
   const input = getByRole("textbox");
-  const newTodo = "testing";
 
   fireEvent.change(input, { target: { value: newTodo } });
   fireEvent.keyDown(input, { key: "Enter", code: 13 });
@@ -31,16 +32,36 @@ it("adds a todo in the list", () => {
   expect(getByText(newTodo)).toBeInTheDocument();
 });
 
-it("removes a todo of the list", () => {
-  const { queryByText, getAllByRole } = render(
+it("removes a todo from the list", () => {
+  const { queryByText, getAllByText } = render(
     <TodoList initialTodos={initialTodos} />
   );
 
-  const indexToRemove = 2;
-  const remover = getAllByRole("button")[indexToRemove];
+  const indexToRemove = 0;
+  const removeButton = getAllByText("remove item")[indexToRemove];
 
-  fireEvent.click(remover);
+  fireEvent.click(removeButton);
 
   expect(queryByText(labels[indexToRemove])).not.toBeInTheDocument();
-  expect(queryByText(labels[0])).toBeInTheDocument();
+  expect(queryByText(labels[1])).toBeInTheDocument();
+});
+
+it("edits a todo in the list", () => {
+  const { getByText, getByDisplayValue, getAllByText } = render(
+    <TodoList initialTodos={initialTodos} />
+  );
+
+  const indexToEdit = 0;
+  const initialLabel = labels[indexToEdit];
+
+  const editButton = getAllByText("edit item")[indexToEdit];
+
+  fireEvent.click(editButton);
+
+  const editionInput = getByDisplayValue(initialLabel);
+
+  fireEvent.change(editionInput, { target: { value: newTodo } });
+  fireEvent.keyDown(editionInput, { key: "Enter", code: 13 });
+
+  expect(getByText(newTodo)).toBeInTheDocument();
 });
