@@ -11,47 +11,70 @@ const makeTodo = (label: string) => ({ id: uuid(), label });
 export function TodoList({ initialTodos = [] }: Props) {
   const [todos, setTodos] = React.useState<Todo[]>(initialTodos);
   const [label, setLabel] = React.useState("");
+  const [feedback, setFeedback] = React.useState("");
+  const topHeading = React.useRef<HTMLHeadingElement>(null);
 
-  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter") {
-      addTodo(label);
-      setLabel("");
-    }
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    addTodo(label);
+    setLabel("");
   }
 
-  function addTodo(content: string) {
-    setTodos(todos => todos.concat(makeTodo(content)));
+  function addTodo(label: string) {
+    setTodos(todos => todos.concat(makeTodo(label)));
+    setFeedback(`${label} added`);
   }
 
-  function removeTodo(id: string) {
-    setTodos(todos => todos.filter(item => item.id !== id));
+  function removeTodo(id: string, label: string) {
+    setTodos(todos => todos.filter(todo => todo.id !== id));
+    setFeedback(`${label} removed`);
+
+    topHeading.current && topHeading.current.focus();
   }
 
   function changeTodoLabel(id: string, label: string) {
     setTodos(todos =>
       todos.map(todo => (todo.id === id ? { ...todo, label } : todo))
     );
+    setFeedback(`${label} saved`);
   }
 
+  const labelValid = !!label.trim();
+
   return (
-    <div>
-      <label htmlFor="todo">Add something todo</label>
-      <input
-        style={{ display: "block" }}
-        id="todo"
-        placeholder="What you gonna do?"
-        value={label}
-        onChange={e => setLabel(e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
-      {todos.map(todo => (
-        <TodoItem
-          key={todo.id}
-          todo={todo}
-          onRemove={removeTodo}
-          onLabelSubmit={changeTodoLabel}
+    <section aria-labelledby="todo-list">
+      <h1 id="todo-list" tabIndex={-1} ref={topHeading}>
+        Todo List
+      </h1>
+      <form onSubmit={handleSubmit}>
+        <label className="vh" htmlFor="add">
+          Write a new todo
+        </label>
+        <input
+          aria-invalid={!labelValid}
+          id="add"
+          type="text"
+          placeholder="What you gotta do?"
+          value={label}
+          onChange={e => setLabel(e.target.value)}
         />
-      ))}
-    </div>
+        <button disabled={!labelValid} type="submit">
+          Add
+        </button>
+      </form>
+      <ul>
+        {todos.map(todo => (
+          <TodoItem
+            key={todo.id}
+            todo={todo}
+            onRemove={removeTodo}
+            onLabelSubmit={changeTodoLabel}
+          />
+        ))}
+      </ul>
+      <div className="vh" role="status">
+        {feedback}
+      </div>
+    </section>
   );
 }

@@ -2,7 +2,7 @@ import React from "react";
 
 interface Props {
   todo: Todo;
-  onRemove: (id: string) => void;
+  onRemove: (id: string, label: string) => void;
   onLabelSubmit: (id: string, label: string) => void;
 }
 
@@ -16,44 +16,48 @@ export function TodoItem({ todo, onRemove, onLabelSubmit }: Props) {
 
   React.useEffect(() => {
     if (editing) {
-      const node = editionInput.current;
-      node && node.focus();
+      editionInput.current && editionInput.current.focus();
     } else if (dirty) {
-      const node = editButton.current;
-      node && node.focus();
+      editButton.current && editButton.current.focus();
     }
   }, [editing, dirty]);
 
-  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter") {
-      onLabelSubmit(todo.id, label);
-      setEditing(false);
-      setDirty(true);
-    }
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    onLabelSubmit(todo.id, label);
+    setEditing(false);
+    setDirty(true);
   }
 
   return (
-    <div>
+    <li data-testid="TodoItem">
       {editing ? (
-        <input
-          ref={editionInput}
-          value={label}
-          onChange={e => setLabel(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
+        <form onSubmit={handleSubmit}>
+          <input
+            ref={editionInput}
+            value={label}
+            onChange={e => setLabel(e.target.value)}
+          />
+        </form>
       ) : (
         <>
           <span>{todo.label}</span>
           <button
+            aria-label={`edit ${todo.label}`}
             ref={editButton}
             onClick={() => setEditing(true)}
             onBlur={() => setDirty(false)}
           >
-            edit item
+            edit
           </button>
-          <button onClick={() => onRemove(todo.id)}>remove item</button>
+          <button
+            aria-label={`remove ${todo.label}`}
+            onClick={() => onRemove(todo.id, todo.label)}
+          >
+            remove
+          </button>
         </>
       )}
-    </div>
+    </li>
   );
 }

@@ -1,8 +1,6 @@
 import React from "react";
 import { TodoList } from "../TodoList";
-import { render, cleanup, fireEvent } from "@testing-library/react";
-
-afterEach(cleanup);
+import { render, cleanup, fireEvent, within } from "@testing-library/react";
 
 const labels = ["cook", "shop", "sleep"];
 
@@ -25,9 +23,10 @@ it("adds a todo in the list", () => {
   );
 
   const input = getByRole("textbox");
+  const form = getByRole("form");
 
   fireEvent.change(input, { target: { value: newTodo } });
-  fireEvent.keyDown(input, { key: "Enter", code: 13 });
+  fireEvent.submit(form);
 
   expect(getByText(newTodo)).toBeInTheDocument();
 });
@@ -38,7 +37,7 @@ it("removes a todo from the list", () => {
   );
 
   const indexToRemove = 0;
-  const removeButton = getAllByText("remove item")[indexToRemove];
+  const removeButton = getAllByText("remove")[indexToRemove];
 
   fireEvent.click(removeButton);
 
@@ -47,21 +46,25 @@ it("removes a todo from the list", () => {
 });
 
 it("edits a todo in the list", () => {
-  const { getByText, getByDisplayValue, getAllByText } = render(
+  const { getByText, getByDisplayValue, getAllByTestId } = render(
     <TodoList initialTodos={initialTodos} />
   );
 
   const indexToEdit = 0;
   const initialLabel = labels[indexToEdit];
 
-  const editButton = getAllByText("edit item")[indexToEdit];
+  const item = getAllByTestId("TodoItem")[indexToEdit];
+  const editButton = within(item).getByText("edit");
 
   fireEvent.click(editButton);
 
   const editionInput = getByDisplayValue(initialLabel);
 
   fireEvent.change(editionInput, { target: { value: newTodo } });
-  fireEvent.keyDown(editionInput, { key: "Enter", code: 13 });
+
+  const form = within(item).getByRole("form");
+
+  fireEvent.submit(form);
 
   expect(getByText(newTodo)).toBeInTheDocument();
 });
